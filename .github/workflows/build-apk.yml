@@ -1,0 +1,46 @@
+
+name: HesapKolay - Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kaynak kodunu al
+        uses: actions/checkout@v4
+
+      - name: ZIP dosyasını aç
+        run: |
+          unzip -o HesapKolay-Flutter-Baslangic.zip -d /tmp/hesapkolay
+          cp /tmp/hesapkolay/pubspec.yaml .
+          mkdir -p lib
+          cp /tmp/hesapkolay/lib/main.dart lib/main.dart
+
+      - name: Flutter kurulumu
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Android projesini oluştur
+        run: flutter create --platforms=android --org com.hesapkolay .
+
+      - name: Paketleri indir
+        run: flutter pub get
+
+      - name: APK oluştur
+        run: flutter build apk --release
+
+      - name: APK dosyasını yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: HesapKolay-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          
